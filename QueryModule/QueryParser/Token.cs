@@ -8,7 +8,7 @@ namespace QueryModule.QueryParser
 {
     enum TokenType
     {
-        SELECT, OP, ID, NUM, FROM, WHERE, L_PARA, R_PARA, COMMA, AND, OR
+        SELECT, OP, ID, NUM, FROM, WHERE, L_PARA, R_PARA, COMMA, AND, OR, STRING
     }
     class Token
     {
