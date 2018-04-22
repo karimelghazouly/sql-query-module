@@ -12,7 +12,27 @@ namespace QueryModule.QueryParser
     }
     class Token
     {
-        TokenType tokenType;
-        string lexeme;
+        internal TokenType tokenType;
+        internal string lexeme;
+
+        internal Token(TokenType type, string lex)
+        {
+            tokenType = type;
+            lexeme = lex;
+        }
+        internal bool isComparison()
+        {
+            return lexeme == "<" || lexeme == "<=" || lexeme == ">" || lexeme == ">=" || lexeme == "=" || lexeme == "!=";
+        }
+
+        internal bool isAddition()
+        {
+            return lexeme == "+" || lexeme == "-";
+        }
+
+        internal bool isMultiplication()
+        {
+            return lexeme == "*" || lexeme == "/";
+        }
     }
 }
