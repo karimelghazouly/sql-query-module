@@ -12,15 +12,6 @@ namespace QueryModule.QueryParser
     }
     class Token
     {
-        public TokenType tokenType;
-        public string lexemes;
-        public Token()
-        { }
-        public Token(string txt, TokenType type)
-        {
-            lexemes = txt;
-            tokenType = type;
-        }
         public TokenType get_type(string s)
         {
             s = s.ToLower();
@@ -50,6 +41,29 @@ namespace QueryModule.QueryParser
             else if (s.Count() > 1 && ((s[0] == '\'' && s[s.Count() - 1] == '\'') || (s[0] == '\"' && s[s.Count() - 1] == '\"')))
                 return TokenType.STRING;
             return TokenType.EXCEPT;
+	}
+
+        internal TokenType tokenType;
+        internal string lexeme;
+
+        internal Token(TokenType type, string lex)
+        {
+            tokenType = type;
+            lexeme = lex;
+        }
+        internal bool isComparison()
+        {
+            return lexeme == "<" || lexeme == "<=" || lexeme == ">" || lexeme == ">=" || lexeme == "=" || lexeme == "!=";
+        }
+
+        internal bool isAddition()
+        {
+            return lexeme == "+" || lexeme == "-";
+        }
+
+        internal bool isMultiplication()
+        {
+            return lexeme == "*" || lexeme == "/";
         }
     }
 
