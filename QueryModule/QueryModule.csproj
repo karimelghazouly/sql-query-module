@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileManager\XMLParser.cs" />
     <Compile Include="QueryModuleForm.cs">
       <SubType>Form</SubType>
     </Compile>
