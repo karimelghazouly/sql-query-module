@@ -289,7 +289,7 @@ namespace QueryModule.QueryParser
             {
                 Node compNode = new Node(NodeType.BINARY, currentToken(), left);
                 skipTokens(1);
-                Node right = add_expression();
+                Node right = logic_expression();
                 compNode.Children.Add(right);
                 return compNode;
             }
@@ -303,7 +303,7 @@ namespace QueryModule.QueryParser
             {
                 Node compNode = new Node(NodeType.BINARY, currentToken(), left);
                 skipTokens(1);
-                Node right = mul_expression();
+                Node right = add_expression();
                 compNode.Children.Add(right);
                 return compNode;
             }
@@ -317,7 +317,7 @@ namespace QueryModule.QueryParser
             {
                 Node compNode = new Node(NodeType.BINARY, currentToken(), left);
                 skipTokens(1);
-                Node right = factor();
+                Node right = mul_expression();
                 compNode.Children.Add(right);
                 return compNode;
             }
