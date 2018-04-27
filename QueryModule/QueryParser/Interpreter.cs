@@ -10,6 +10,10 @@ namespace QueryModule.QueryParser
     {
         public InterpreterException(string message) : base(message) { }
     }
+    class EmptyQueryException : Exception
+    {
+        public EmptyQueryException(string message) : base(message) { }
+    }
     class Interpreter
     {
         internal ParserResult pr;
@@ -22,29 +26,37 @@ namespace QueryModule.QueryParser
             ret = new List<List<string> >();
         }
 
-        void getTable()
+        public void getTable()
         {
-            // call from xml
+            table = QueryModule.FileManager.XMLParser.getTable(pr.fromNode.Children[0].originalToken.lexeme);
         }
+        #region Where
         bool assertBinaryNode(Node cur)
         {
             foreach(Node child in cur.Children)
+            {
+                if(cur.originalToken.tokenType == TokenType.AND || cur.originalToken.tokenType == TokenType.OR)
+                {
+                    if (!assertAndOr(child))
+                        throw new InterpreterException("Cannot apply " + cur.originalToken.lexeme + "operator to strings");
+                    continue;
+                }
                 if(!assertBinary(child))
                     throw new InterpreterException("Cannot apply " + cur.originalToken.lexeme + "operator to strings");
+            }
             return true;
         }
         bool assertAndOr(Node child)
         {
             return (child.nodeType != NodeType.STRING && child.nodeType != NodeType.WHERE &&
                 child.nodeType != NodeType.SELECT && child.nodeType != NodeType.LIST &&
-                child.nodeType != NodeType.FROM && child.nodeType != NodeType.LIST);
+                child.nodeType != NodeType.FROM);
         }
         bool assertBinary(Node child)
         {
             return (child.nodeType != NodeType.STRING && child.nodeType != NodeType.WHERE &&
                 child.nodeType != NodeType.SELECT && child.nodeType != NodeType.LIST &&
-                child.nodeType != NodeType.FROM && child.nodeType != NodeType. IN &&
-                child.nodeType != NodeType.LIST);
+                child.nodeType != NodeType.FROM && child.nodeType != NodeType. IN);
         }
         Entity excuteWhere(Node cur, List<Entity> r, Dictionary<string, Entity> map)
         {
@@ -177,7 +189,10 @@ namespace QueryModule.QueryParser
         }
         Entity excuteID(Node cur, List<Entity> r, Dictionary<string, Entity> map)
         {
-            return map[cur.originalToken.lexeme];
+            if (map.ContainsKey(cur.originalToken.lexeme))
+                return map[cur.originalToken.lexeme];
+            else
+                throw new EmptyQueryException(cur.originalToken.lexeme + "is not a valid column");
         }
         Entity excuteNum(Node cur, List<Entity> r, Dictionary<string, Entity> map)
         {
@@ -256,23 +271,187 @@ namespace QueryModule.QueryParser
                 ret[i.name] = i;
             return ret;
         }
-
-
-        
         void selectRows()
         {
             Dictionary<string, Entity> map;
-            foreach(List<Entity> r in table)
+            foreach (List<Entity> r in table)
             {
                 map = initMap(r);
                 Entity x = excute(pr.whereNode, r, map);
-                if(x.valueN != 0.0)
+                if (x.valueN != 0.0)
                     rows.Add(r);
             }
         }
-        void getResult()
+        #endregion
+        #region Select
+        bool assertBinaryNodeS(Node cur)
         {
-
+            foreach (Node child in cur.Children)
+            {
+                if (!assertBinaryS(child))
+                    throw new InterpreterException("Cannot apply " + cur.originalToken.lexeme + "operator to strings");
+            }
+            return true;
         }
+        bool assertBinaryS(Node child)
+        {
+            return (child.nodeType != NodeType.STRING && child.nodeType != NodeType.WHERE &&
+                child.nodeType != NodeType.SELECT && child.nodeType != NodeType.LIST &&
+                child.nodeType != NodeType.FROM && child.nodeType != NodeType.IN&&!child.originalToken.isLogical()
+                &&!child.originalToken.isComparison());
+        }
+        List <List<Entity> >excuteSelect(Node cur, Dictionary<string, List<Entity> >map)
+        {
+            List<List<Entity> >ret = new List< List<Entity> >();
+            for (int i = 0; i < cur.Children.Count; i++)           
+                ret.Add(excuteS(cur.Children[i], map));
+            // transpose
+            List<List<Entity> > rett = new List<List<Entity> >();
+            for (int i = 0; i < rows.Count; i++)
+            {
+                rett.Add(new List<Entity>());
+            }
+            for(int i = 0; i < rows.Count; i++)
+            {
+                for(int j = 0; j < ret.Count; j++)
+                {                    
+                    rett[i].Add(ret[j][i]);
+                }
+            }
+            return rett;
+        }
+
+        List<Entity> excutePlusS(Node cur,Dictionary<string, List <Entity> >map)
+        {
+            if (!assertBinaryNodeS(cur))
+                return null;
+            List<Entity> left = excuteS(cur.Children[0], map);
+            List<Entity> right = excuteS(cur.Children[1], map);
+            List<Entity> ret = new List<Entity>();
+            for(int i=0;i<left.Count;i++)
+            {
+                Entity neww =  new Entity("",Type.NUM,left[i].valueN + right[i].valueN);
+                ret.Add(neww);
+            }
+            return ret;
+        }      
+        List<Entity> excuteMinusS(Node cur, Dictionary<string, List<Entity>> map)
+        {
+            if (!assertBinaryNodeS(cur))
+                return null;
+            List<Entity> left = excuteS(cur.Children[0], map);
+            List<Entity> right = excuteS(cur.Children[0], map);
+            List<Entity> ret = new List<Entity>();
+            for (int i = 0; i < left.Count; i++)
+            {
+                Entity neww = new Entity("", Type.NUM, left[i].valueN - right[i].valueN);
+                ret.Add(neww);
+            }
+            return ret;
+        }
+        List<Entity> excuteMulS(Node cur, Dictionary<string, List<Entity>> map)
+        {
+            if (!assertBinaryNodeS(cur))
+                return null;
+            List<Entity> left = excuteS(cur.Children[0], map);
+            List<Entity> right = excuteS(cur.Children[1], map);
+            List<Entity> ret = new List<Entity>();
+            for (int i = 0; i < left.Count; i++)
+            {
+                Entity neww = new Entity("", Type.NUM, left[i].valueN * right[i].valueN);
+                ret.Add(neww);
+            }
+            return ret;
+        }
+        List<Entity> excuteDivS(Node cur, Dictionary<string, List<Entity>> map)
+        {
+            if (!assertBinaryNodeS(cur))
+                return null;
+            List<Entity> left = excuteS(cur.Children[0], map);
+            List<Entity> right = excuteS(cur.Children[1], map);
+            List<Entity> ret = new List<Entity>();
+            for (int i = 0; i < left.Count; i++)
+            {
+                Entity neww = new Entity("", Type.NUM, left[i].valueN / right[i].valueN);
+                ret.Add(neww);
+            }
+            return ret;
+        }
+        List<Entity> excuteIDS(Node cur, Dictionary<string, List<Entity>> map)
+        {
+            if (map.ContainsKey(cur.originalToken.lexeme))
+                return map[cur.originalToken.lexeme];
+            else
+                throw new EmptyQueryException(cur.originalToken.lexeme + "is not a valid Column");
+        }
+        List<Entity> excuteNumS(Node cur, Dictionary<string, List<Entity>> map)
+        {
+            List<Entity> ret = new List<Entity>();
+            for(int i=0;i<rows.Count;i++)
+                ret.Add(new Entity(cur.originalToken.lexeme, Type.NUM, double.Parse(cur.originalToken.lexeme, System.Globalization.CultureInfo.InvariantCulture)));
+            return ret;
+        }
+        List<Entity> excuteStringS(Node cur, Dictionary<string, List<Entity>> map)
+        {
+            List<Entity> ret = new List<Entity>();
+            for (int i = 0; i < rows.Count; i++)
+                ret.Add(new Entity("",Type.STRING,cur.originalToken.lexeme));
+            return ret;
+        }
+        List<Entity> excuteS(Node cur, Dictionary<string, List<Entity> > map)
+        {
+            if (cur.originalToken.lexeme == "-")
+                return excuteMinusS(cur,  map);
+            else if (cur.originalToken.lexeme == "+")
+                return excutePlusS(cur, map);
+            else if (cur.originalToken.lexeme == "*")
+                return excuteMulS(cur, map);
+            else if (cur.originalToken.lexeme == "/")
+                return excuteDivS(cur, map);
+
+            else if (cur.nodeType == NodeType.NUMBER)
+                return excuteNumS(cur, map);
+            else if (cur.nodeType == NodeType.ID)
+                return excuteIDS(cur, map);
+            else if (cur.nodeType == NodeType.STRING)
+                return excuteStringS(cur, map);
+            return null;
+        }
+        Dictionary<string, List<Entity> > initMapS()
+        {
+            Dictionary<string, List<Entity> > ret = new Dictionary<string, List<Entity> >();
+            foreach(List<Entity> r in rows)
+                foreach(Entity e in r)
+                {
+                    if(!ret.ContainsKey(e.name))
+                    {
+                        ret[e.name] = new List<Entity>();
+                    }
+                    ret[e.name].Add(e);
+                }
+
+            return ret;
+        }
+        public List<List<string> > getResult()
+        {
+            selectRows();
+            Dictionary<string, List<Entity>> map = initMapS();
+            List<List<Entity> > res = excuteSelect(pr.selectNode,map);
+            List<List<string> > ret = new List<List<string> >();
+            foreach(var i in res)
+            {
+                List<string> add = new List<string>();
+                foreach(var j in i)
+                {
+                    if (j.type == Type.NUM)
+                        add.Add(j.valueN.ToString());
+                    else
+                        add.Add(j.valueS);
+                }
+                ret.Add(add);
+            }
+            return ret;
+        }
+        #endregion
     }
 }

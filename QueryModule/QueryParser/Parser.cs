@@ -173,7 +173,7 @@ namespace QueryModule.QueryParser
         {
             if(curToken >= tokens.Count)
             {
-                return null;
+                return new Node(NodeType.WHERE, new Token(TokenType.WHERE, "where"), new Node(NodeType.NUMBER, new Token(TokenType.NUM, "1")));
             }
             assertCurrentToken(TokenType.WHERE);
             Token whereToken = currentToken();
@@ -339,7 +339,10 @@ namespace QueryModule.QueryParser
                 return ret;
             }
             Node idNode = id();
-            if (idNode != null) return idNode;
+            if (idNode != null)
+            {
+                return idNode;
+            }
             if(currentToken().tokenType == TokenType.OP && currentToken().lexeme == "-")
             {
                 Token negativeToken = currentToken();

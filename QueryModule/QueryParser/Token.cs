@@ -63,7 +63,7 @@ namespace QueryModule.QueryParser
                 tokenType == TokenType.STRING || tokenType == TokenType.NOT || 
                 tokenType == TokenType.IN)
             {
-                return lexeme.ToUpper();
+                return lexeme.ToLower();
             }
             return lexeme;
         }

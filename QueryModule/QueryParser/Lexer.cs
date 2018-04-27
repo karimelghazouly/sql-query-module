@@ -42,7 +42,9 @@ namespace QueryModule.QueryParser
             query = query.Trim();
             int idx = -1;
             List<Token> ret = new List<Token>();
-            string select_check = query.Substring(0, 6);
+            string select_check = "";
+            if(query.Length >5)
+                select_check =  query.Substring(0, 6);
             select_check = select_check.ToLower();
             if (select_check.ToLower() != "select")
             {
@@ -127,7 +129,7 @@ namespace QueryModule.QueryParser
                     }
                 }
             }
-            if (temp.Length > 0)
+            if (temp.Length > 0&&idx2==-1)
             {
                 TokenType t = Token.getType(temp);
                 if (t != TokenType.EXCEPT)

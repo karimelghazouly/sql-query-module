@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using QueryModule.QueryParser;
+using QueryModule.FileManager;
 
 namespace QueryModule
 {
@@ -29,46 +30,90 @@ namespace QueryModule
                 MessageBox.Show("Please write your SQL query.");
                 return;
             }
-            List<Token> tokens = lexer.Lex(text);
-            ParserResult node = Parser.parse(tokens);
-            List<List<string>> data = new List<List<string>>();
-            for (int i = 0; i < 3; i++)
+            try
             {
-                List<string> tt = new List<string>();
-                for (int j = 0; j < 3; j++)
-                    tt.Add("lol at row " + i.ToString() + " col " + j.ToString());
-                data.Add(tt);
-            }
-            List<string> cols = new List<string>();
-            string name = "";
-            for (int i = 0; i < tokens.Count; i++)
+                List<Token> tokens = lexer.Lex(text);
+                ParserResult node = Parser.parse(tokens);
+                Interpreter intsho = new Interpreter(node);
+                intsho.getTable();
+                List<List<string>> data = intsho.getResult();
+                List<string> cols = new List<string>();
+                string name = "";
+                for (int i = 0; i < tokens.Count; i++)
+                {
+                    if (tokens[i].tokenType == TokenType.SELECT)
+                        continue;
+                    if (tokens[i].tokenType == TokenType.FROM)
+                    {
+                        cols.Add(name);
+                        break;
+                    }
+                    if (tokens[i].tokenType == TokenType.COMMA)
+                    {
+                        cols.Add(name);
+                        name = "";
+                    }
+                    else
+                    {
+                        name += tokens[i].lexeme + " ";
+                    }
+                }
+                DataTable table = new DataTable();
+                for (int i = 0; i < cols.Count; i++)
+                    table.Columns.Add(cols[i]);
+                for (int i = 0; i < data.Count; i++)
+                {
+                    table.Rows.Add(data[i].ToArray());
+                }
+                dataGridView1.DataSource = table;
+                dataGridView1.Visible = true;
+            } catch (LexerException E)
             {
-                if (tokens[i].tokenType == TokenType.SELECT)
-                    continue;
-                if (tokens[i].tokenType == TokenType.FROM)
-                {
-                    cols.Add(name);
-                    break;
-                }
-                if (tokens[i].tokenType == TokenType.COMMA)
-                {
-                    cols.Add(name);
-                    name = "";
-                }
-                else
-                {
-                    name += tokens[i].lexeme + " ";
-                }
-            }
-            DataTable table = new DataTable();
-            for (int i = 0; i < cols.Count; i++)
-                table.Columns.Add(cols[i]);
-            for (int i = 0; i < data.Count; i++)
+                MessageBox.Show(E.Message);
+            } catch (ParserException E)
             {
-                table.Rows.Add(data[i].ToArray());
+                MessageBox.Show(E.Message);
+            } catch (InterpreterException E)
+            {
+                MessageBox.Show(E.Message);
+            } catch (XMLParserException E)
+            {
+                MessageBox.Show(E.Message);
+            } catch (EmptyQueryException E)
+            {
+                List<Token> tokens = lexer.Lex(text);
+                List<List<string>> data = new List<List<string>>();
+                List<string> cols = new List<string>();
+                string name = "";
+                for (int i = 0; i < tokens.Count; i++)
+                {
+                    if (tokens[i].tokenType == TokenType.SELECT)
+                        continue;
+                    if (tokens[i].tokenType == TokenType.FROM)
+                    {
+                        cols.Add(name);
+                        break;
+                    }
+                    if (tokens[i].tokenType == TokenType.COMMA)
+                    {
+                        cols.Add(name);
+                        name = "";
+                    }
+                    else
+                    {
+                        name += tokens[i].lexeme + " ";
+                    }
+                }
+                DataTable table = new DataTable();
+                for (int i = 0; i < cols.Count; i++)
+                    table.Columns.Add(cols[i]);
+                for (int i = 0; i < data.Count; i++)
+                {
+                    table.Rows.Add(data[i].ToArray());
+                }
+                dataGridView1.DataSource = table;
+                dataGridView1.Visible = true;
             }
-            dataGridView1.DataSource = table;
-            dataGridView1.Visible = true;
         }
 
         private void button2_Click(object sender, EventArgs e)

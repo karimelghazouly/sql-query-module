@@ -61,7 +61,7 @@ namespace QueryModule.FileManager
             }
             return DB;
         }
-        public static List<List<Entity>> getTable(string tableName)
+        public static List<List<Entity> > getTable(string tableName)
         {
             foreach (XMLTable table in GetDatabase().Tables)
             {
@@ -70,7 +70,7 @@ namespace QueryModule.FileManager
                     return formatTableForInterpreter(table);
                 }
             }
-            return null;
+            throw new XMLParserException("Table "+tableName+" not found!");
         }
         private static List<List<Entity>> formatTableForInterpreter(XMLTable table)
         {
