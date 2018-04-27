@@ -77,6 +77,7 @@ namespace QueryModule
             if (FD.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 string fileToOpen = FD.FileName;
+                FileManager.XMLParser.SetDatabasePath(fileToOpen);
                 button1.Enabled = true;
             }
         }
