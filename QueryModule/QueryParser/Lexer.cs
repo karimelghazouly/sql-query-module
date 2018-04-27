@@ -10,12 +10,12 @@ namespace QueryModule.QueryParser
     {
         public lexer()
         { }
-        bool isoperator(char x)
+        private static bool isoperator(char x)
         {
             return (x == '+' || x == '-' || x == '*' || x == '/' || x == '>' || x == '<' || x == '=' || x == '!'
                 || x == '%');
         }
-        public List<Token> Lex(string query)
+        public static List<Token> Lex(string query)
         {
             query = query.Trim();
             int idx = -1;
@@ -113,11 +113,11 @@ namespace QueryModule.QueryParser
                 }
             }
             temp = "";
-            // select x , y+3+(5/8) , avg(x+((9*9)*(12/2))) from jaaa where bla == bla and NOT yyy=='qwe'
+            // select x , y+3+(5/8) , avg(x+((9*9)*(12/2))) from jaaa where bla = bla and yyy != 'qwe'
             // el ahna 3mleno fe el loop el tht da ghalat 3shan el case de hy5od heta de kolha id wahd
             for (int i = idx2; i < query.Length && i != -1; i++)
             {
-                if (query[i] == ' ' || isoperator(query[i]) || query[i] == '(' || query[i] == ')')
+                if (query[i] == ' ' || isoperator(query[i]) || query[i] == '(' || query[i] == ')' || query[i] == ',')
                 {
                     if (isoperator(query[i]))
                     {
@@ -130,9 +130,65 @@ namespace QueryModule.QueryParser
                         ret.Add(new Token(TokenType.OP, o));
                     }
                     else if (query[i] == '(')
+                    {
+                        if (temp.Length > 0)
+                        {
+                            TokenType tt = Token.getType(temp);
+                            if (tt != TokenType.EXCEPT)
+                            {
+                                Token neww = new Token(tt, temp);
+                                ret.Add(neww);
+                            }
+                            else
+                            {
+                                //raise exception
+                                Console.WriteLine("btngahagagaga");
+                                return null;
+                            }
+                        }
+                        temp = "";
                         ret.Add(new Token(TokenType.L_PARA, "("));
+                    }
+                    else if (query[i] == ',')
+                    {
+                        if (temp.Length > 0)
+                        {
+                            TokenType tt = Token.getType(temp);
+                            if (tt != TokenType.EXCEPT)
+                            {
+                                Token neww = new Token(tt, temp);
+                                ret.Add(neww);
+                            }
+                            else
+                            {
+                                //raise exception
+                                Console.WriteLine("btngahagagaga");
+                                return null;
+                            }
+                        }
+                        temp = "";
+                        ret.Add(new Token(TokenType.COMMA, ","));
+                    }
                     else if (query[i] == ')')
+                    {
+                        if (temp.Length > 0)
+                        {
+                            TokenType tt = Token.getType(temp);
+                            if (tt != TokenType.EXCEPT)
+                            {
+                                Token neww = new Token(tt, temp);
+                                ret.Add(neww);
+                            }
+                            else
+                            {
+                                //raise exception
+                                Console.WriteLine("btngahagagaga");
+                                return null;
+                            }
+                        }
+                        temp = "";
                         ret.Add(new Token(TokenType.R_PARA, ")"));
+                    }
 
                     if (temp == "") continue;
                     TokenType t = Token.getType(temp);
@@ -152,6 +208,22 @@ namespace QueryModule.QueryParser
                 else
                 {
                     temp += query[i];
+                }
+            }
+
+            if(temp.Length> 0)
+            {
+                TokenType t = Token.getType(temp);
+                if (t != TokenType.EXCEPT)
+                {
+                    Token neww = new Token(t, temp);
+                    ret.Add(neww);
+                }
+                else
+                {
+                    //raise exception
+                    Console.WriteLine("btngahagagaga");
+                    return null;
                 }
             }
 

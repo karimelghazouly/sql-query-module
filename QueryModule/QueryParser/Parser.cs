@@ -62,16 +62,28 @@ namespace QueryModule.QueryParser
 
         private static Token nextToken()
         {
+            if (curToken + 1 >= tokens.Count) 
+            {
+                return new Token(TokenType.EOF, "");
+            }
             return tokens[++curToken];
         }
 
         private static Token peekToken()
         {
+            if (curToken + 1 >= tokens.Count)
+            {
+                return new Token(TokenType.EOF, "");
+            }
             return tokens[curToken + 1];
         }
 
         private static Token currentToken()
         {
+            if(curToken >= tokens.Count)
+            {
+                return new Token(TokenType.EOF, "");
+            }
             return tokens[curToken];
         }
 
@@ -111,7 +123,12 @@ namespace QueryModule.QueryParser
 
         public static ParserResult parse(List<Token> tokens)
         {
-            ParserResult ret = new ParserResult(selectStatement(), fromStatement(), whereStatement());
+            Parser.tokens = tokens;
+            Node select = selectStatement();
+            Node from = fromStatement();
+            Node where = whereStatement();
+            assertCurrentToken(TokenType.EOF);
+            ParserResult ret = new ParserResult(select, from, where);
             return ret;
         }
 
@@ -165,31 +182,6 @@ namespace QueryModule.QueryParser
             return retNode;
         }
 
-        private static Node whereExpression()
-        {
-            Node expr = expression();
-            if (checkSequence(TokenType.IN))
-            {
-                Node inNode = new Node(NodeType.BINARY, currentToken());
-                skipTokens(1);
-                Node notNode = null;
-                if (checkSequence(TokenType.NOT))
-                {
-                    notNode = new Node(NodeType.NEGATE, currentToken());
-                    skipTokens(1);
-                }
-                Node li = list();
-                inNode.Children.Add(expr);
-                inNode.Children.Add(li);
-                if (notNode == null)
-                {
-                    return inNode;
-                }
-                return notNode;
-            }
-            return expr;
-        }
-
         private static Node list()
         {
             assertCurrentToken(TokenType.L_PARA);
@@ -223,7 +215,9 @@ namespace QueryModule.QueryParser
             }
             if(currentToken().tokenType == TokenType.ID)
             {
-                return new Node(NodeType.ID, currentToken()); 
+                ret = new Node(NodeType.ID, currentToken());
+                skipTokens(1);
+                return ret;
             }
             return null;
         }
@@ -248,12 +242,52 @@ namespace QueryModule.QueryParser
             return logic_expression();
         }
 
+        private static Node whereExpression()
+        {
+            Node left = whereLogicExpression();
+            if (curToken < tokens.Count && currentToken().isLogical())
+            {
+                Node compNode = new Node(NodeType.BINARY, currentToken(), left);
+                skipTokens(1);
+                Node right = whereExpression();
+                compNode.Children.Add(right);
+                return compNode;
+            }
+            return left;
+        }
+
+        private static Node whereLogicExpression()
+        {
+            Node expr = expression();
+            if (checkSequence(TokenType.IN))
+            {
+                Node inNode = new Node(NodeType.BINARY, currentToken());
+                skipTokens(1);
+                Node notNode = null;
+                if (checkSequence(TokenType.NOT))
+                {
+                    notNode = new Node(NodeType.NEGATE, currentToken());
+                    skipTokens(1);
+                }
+                Node li = list();
+                inNode.Children.Add(expr);
+                inNode.Children.Add(li);
+                if (notNode == null)
+                {
+                    return inNode;
+                }
+                return notNode;
+            }
+            return expr;
+        }
+
         private static Node logic_expression()
         {
             Node left = add_expression();
             if(currentToken().tokenType == TokenType.OP && currentToken().isComparison())
             {
-                Node compNode = new Node(NodeType.BINARY, nextToken(), left);
+                Node compNode = new Node(NodeType.BINARY, currentToken(), left);
+                skipTokens(1);
                 Node right = add_expression();
                 compNode.Children.Add(right);
                 return compNode;
@@ -266,7 +300,8 @@ namespace QueryModule.QueryParser
             Node left = mul_expression();
             if (currentToken().tokenType == TokenType.OP && currentToken().isAddition())
             {
-                Node compNode = new Node(NodeType.BINARY, nextToken(), left);
+                Node compNode = new Node(NodeType.BINARY, currentToken(), left);
+                skipTokens(1);
                 Node right = mul_expression();
                 compNode.Children.Add(right);
                 return compNode;
@@ -279,7 +314,8 @@ namespace QueryModule.QueryParser
             Node left = factor();
             if (currentToken().tokenType == TokenType.OP && currentToken().isMultiplication())
             {
-                Node compNode = new Node(NodeType.BINARY, nextToken(), left);
+                Node compNode = new Node(NodeType.BINARY, currentToken(), left);
+                skipTokens(1);
                 Node right = factor();
                 compNode.Children.Add(right);
                 return compNode;
@@ -317,6 +353,7 @@ namespace QueryModule.QueryParser
                 skipTokens(1);
                 Node retNode = expression();
                 assertCurrentToken(TokenType.R_PARA);
+                skipTokens(1);
                 return retNode;
             }
             return null;

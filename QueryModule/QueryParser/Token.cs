@@ -8,7 +8,7 @@ namespace QueryModule.QueryParser
 {
     enum TokenType
     {
-        SELECT, OP, ID, NUM, FROM, WHERE, L_PARA, R_PARA, COMMA, AND, OR, STRING, EXCEPT, NOT, IN
+        SELECT, OP, ID, NUM, FROM, WHERE, L_PARA, R_PARA, COMMA, AND, OR, STRING, EXCEPT, NOT, IN, EOF
     }
     class Token
     {
@@ -36,7 +36,8 @@ namespace QueryModule.QueryParser
                     if (s[i] == '.') cnt++;
                     if (s[i] != '.' && (s[i] < '0' || s[i] > '9')) return TokenType.EXCEPT;
                 }
-                if (cnt > 1) return TokenType.EXCEPT;
+                if (cnt > 1)
+                    return TokenType.EXCEPT;
                 return TokenType.NUM;
             }
             else if (s.Count() > 1 && ((s[0] == '\'' && s[s.Count() - 1] == '\'') || (s[0] == '\"' && s[s.Count() - 1] == '\"')))
@@ -50,7 +51,21 @@ namespace QueryModule.QueryParser
         internal Token(TokenType type, string lex)
         {
             tokenType = type;
-            lexeme = lex;
+            lexeme = casedLexeme(lex);
+        }
+
+        internal string casedLexeme(string lexeme)
+        {
+            if(tokenType == TokenType.SELECT || tokenType == TokenType.OP || 
+                tokenType == TokenType.FROM || tokenType == TokenType.WHERE || 
+                tokenType == TokenType.R_PARA || tokenType == TokenType.COMMA || 
+                tokenType == TokenType.AND || tokenType == TokenType.OR || 
+                tokenType == TokenType.STRING || tokenType == TokenType.NOT || 
+                tokenType == TokenType.IN)
+            {
+                return lexeme.ToUpper();
+            }
+            return lexeme;
         }
         internal bool isComparison()
         {
@@ -65,6 +80,11 @@ namespace QueryModule.QueryParser
         internal bool isMultiplication()
         {
             return lexeme == "*" || lexeme == "/";
+        }
+
+        internal bool isLogical()
+        {
+            return tokenType == TokenType.AND || tokenType == TokenType.OR;
         }
     }
 
