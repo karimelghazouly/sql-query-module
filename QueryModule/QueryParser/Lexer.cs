@@ -92,6 +92,20 @@ namespace QueryModule.QueryParser
                 }
                 else temp += query[i];
             }
+            if (temp.Length > 0)
+            {
+                TokenType t = Token.getType(temp);
+                if (t != TokenType.EXCEPT)
+                {
+                    Token neww = new Token(t, temp);
+                    ret.Add(neww);
+                }
+                else
+                {
+                    throw new LexerException("Unexpected token " + temp);
+                }
+            }
+
             temp = "";
             int idx2 = -1;
             if (idx == -1)
@@ -194,9 +208,7 @@ namespace QueryModule.QueryParser
                 }
                 else
                 {
-                    //raise exception
-                    Console.WriteLine("btngahagagaga");
-                    return null;
+                    throw new LexerException("Unexpected token " + temp);
                 }
             }
 
