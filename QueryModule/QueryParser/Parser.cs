@@ -8,7 +8,7 @@ namespace QueryModule.QueryParser
 {
     enum NodeType
     {
-        ID, FUNC_CALL, BINARY, NUMBER, SELECT, FROM, STRING, LIST, NEGATE
+        ID, FUNC_CALL, BINARY, NUMBER, SELECT, FROM, STRING, LIST, NEGATE, WHERE, IN
     }
     class Node
     {
@@ -178,7 +178,7 @@ namespace QueryModule.QueryParser
             assertCurrentToken(TokenType.WHERE);
             Token whereToken = currentToken();
             skipTokens(1);
-            Node retNode = new Node(NodeType.FROM, whereToken, whereExpression());
+            Node retNode = new Node(NodeType.WHERE, whereToken, whereExpression());
 
             return retNode;
         }
