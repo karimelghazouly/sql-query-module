@@ -123,6 +123,7 @@ namespace QueryModule.QueryParser
 
         public static ParserResult parse(List<Token> tokens)
         {
+            curToken = 0;
             Parser.tokens = tokens;
             Node select = selectStatement();
             Node from = fromStatement();
