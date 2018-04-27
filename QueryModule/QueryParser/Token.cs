@@ -51,6 +51,10 @@ namespace QueryModule.QueryParser
         internal Token(TokenType type, string lex)
         {
             tokenType = type;
+            if(type == TokenType.STRING)
+            {
+                lex = lex.Substring(1, lex.Length - 2);
+            }
             lexeme = casedLexeme(lex);
         }
 

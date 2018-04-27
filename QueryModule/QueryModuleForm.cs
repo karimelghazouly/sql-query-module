@@ -119,6 +119,8 @@ namespace QueryModule
         private void button2_Click(object sender, EventArgs e)
         {
             var FD = new System.Windows.Forms.OpenFileDialog();
+            FD.Filter = "XML Files|*.xml";
+            FD.Title = "Select Database File";
             if (FD.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 string fileToOpen = FD.FileName;

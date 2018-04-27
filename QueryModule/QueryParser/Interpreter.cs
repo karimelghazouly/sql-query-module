@@ -198,12 +198,21 @@ namespace QueryModule.QueryParser
         {
             return new Entity(cur.originalToken.lexeme, Type.NUM, double.Parse(cur.originalToken.lexeme, System.Globalization.CultureInfo.InvariantCulture));
         }
-        Entity excuteList(Node cur, List<Entity> r, Dictionary<string, Entity> map, double v)
+        Entity excuteList(Node cur, List<Entity> r, Dictionary<string, Entity> map, Entity v)
         {
             Entity ret = new Entity("", Type.NUM, 0.0);
+            bool INT = true, STR = true;
             foreach(Node child in cur.Children)
             {
-                if (excute(child, r, map).valueN == v)
+                Entity x = excute(child, r, map);
+                if (x.type != v.type)
+                    continue;                
+                if(x.type == Type.STRING && x.valueS == v.valueS)
+                {
+                    ret.valueN = 1;
+                    break;
+                }
+                else if (x.type == Type.NUM && x.valueN == v.valueN)
                 {
                     ret.valueN = 1;
                     break;
@@ -214,7 +223,7 @@ namespace QueryModule.QueryParser
         Entity excuteIN(Node cur, List<Entity> r, Dictionary<string, Entity> map)
         {           
             Entity left = excute(cur.Children[0], r, map);
-            return excuteList(cur.Children[1], r, map, left.valueN);
+            return excuteList(cur.Children[1], r, map, left);
         }
         Entity excuteString(Node cur, List<Entity> r, Dictionary<string, Entity> map)
         {
@@ -255,7 +264,8 @@ namespace QueryModule.QueryParser
                 return excuteNotEq(cur, r, map);
             else if (cur.originalToken.lexeme == "!")
                 return excuteNot(cur, r, map);
-
+            else if (cur.originalToken.lexeme == "in")
+                return excuteIN(cur, r, map);
             else if (cur.nodeType == NodeType.NUMBER)
                 return excuteNum(cur, r, map);
             else if (cur.nodeType == NodeType.ID)
@@ -321,26 +331,79 @@ namespace QueryModule.QueryParser
             return rett;
         }
 
-        List<Entity> excutePlusS(Node cur,Dictionary<string, List <Entity> >map)
+        List<Entity> excutePlusS(Node cur, Dictionary<string, List<Entity>> map)
         {
             if (!assertBinaryNodeS(cur))
                 return null;
             List<Entity> left = excuteS(cur.Children[0], map);
             List<Entity> right = excuteS(cur.Children[1], map);
             List<Entity> ret = new List<Entity>();
-            for(int i=0;i<left.Count;i++)
+            for (int i = 0; i < left.Count; i++)
             {
-                Entity neww =  new Entity("",Type.NUM,left[i].valueN + right[i].valueN);
+                Entity neww = new Entity("", Type.NUM, left[i].valueN + right[i].valueN);
                 ret.Add(neww);
             }
             return ret;
-        }      
+        }
+        List<Entity> sum(Node cur, Dictionary<string, List<Entity>> map)
+        {
+            Entity ret = new Entity("", Type.NUM, 0);
+            List<Entity> l = excuteS(cur.Children[0], map);           
+            foreach (var i in l)
+                ret.valueN += i.valueN;
+            List<Entity> list = new List<Entity>();
+            for (int i = 0; i < l.Count; i++)
+                list.Add(ret);
+            return list;
+        }
+        List<Entity> avg(Node cur, Dictionary<string, List<Entity>> map)
+        {
+            Entity ret = new Entity("", Type.NUM, 0);
+            List<Entity> l = excuteS(cur.Children[0], map);
+            foreach (var i in l)
+                ret.valueN += i.valueN;
+            ret.valueN /= l.Count;
+            List<Entity> list = new List<Entity>();
+            for (int i = 0; i < l.Count; i++)
+            {
+                list.Add(ret);
+            }
+            return list;
+        }
+        List<Entity> min(Node cur, Dictionary<string, List<Entity>> map)
+        {
+            Entity ret = new Entity("", Type.NUM, 1000000000.0);
+            List<Entity> l = excuteS(cur.Children[0], map);
+            foreach (var i in l)            
+                if (ret.valueN > i.valueN)
+                    ret.valueN = i.valueN;            
+            List<Entity> list = new List<Entity>();
+            for (int i = 0; i < l.Count; i++)
+            {
+                list.Add(ret);
+            }
+            return list;
+        }
+        List<Entity> max(Node cur, Dictionary<string, List<Entity>> map)
+        {
+            Entity ret = new Entity("", Type.NUM, -1000000000.0);
+            List<Entity> l = excuteS(cur.Children[0], map);
+            foreach (var i in l)
+                if (ret.valueN < i.valueN)
+                    ret.valueN = i.valueN;
+            List<Entity> list = new List<Entity>();
+            for (int i = 0; i < l.Count; i++)
+            {
+                list.Add(ret);
+            }
+            return list;
+        }
         List<Entity> excuteMinusS(Node cur, Dictionary<string, List<Entity>> map)
         {
             if (!assertBinaryNodeS(cur))
                 return null;
             List<Entity> left = excuteS(cur.Children[0], map);
-            List<Entity> right = excuteS(cur.Children[0], map);
+            List<Entity> right = excuteS(cur.Children[1], map);
             List<Entity> ret = new List<Entity>();
             for (int i = 0; i < left.Count; i++)
             {
@@ -401,14 +464,21 @@ namespace QueryModule.QueryParser
         List<Entity> excuteS(Node cur, Dictionary<string, List<Entity> > map)
         {
             if (cur.originalToken.lexeme == "-")
-                return excuteMinusS(cur,  map);
+                return excuteMinusS(cur, map);
             else if (cur.originalToken.lexeme == "+")
                 return excutePlusS(cur, map);
             else if (cur.originalToken.lexeme == "*")
                 return excuteMulS(cur, map);
             else if (cur.originalToken.lexeme == "/")
                 return excuteDivS(cur, map);
-
+            else if (cur.originalToken.lexeme == "avg")
+                return avg(cur, map);
+            else if (cur.originalToken.lexeme == "sum")
+                return sum(cur, map);
+            else if (cur.originalToken.lexeme == "min")
+                return min(cur, map);
+            else if (cur.originalToken.lexeme == "max")
+                return max(cur, map);
             else if (cur.nodeType == NodeType.NUMBER)
                 return excuteNumS(cur, map);
             else if (cur.nodeType == NodeType.ID)
