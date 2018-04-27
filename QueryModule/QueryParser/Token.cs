@@ -8,16 +8,17 @@ namespace QueryModule.QueryParser
 {
     enum TokenType
     {
-        SELECT, OP, ID, NUM, FROM, WHERE, L_PARA, R_PARA, COMMA, AND, OR, STRING, EXCEPT, NOT
+        SELECT, OP, ID, NUM, FROM, WHERE, L_PARA, R_PARA, COMMA, AND, OR, STRING, EXCEPT, NOT, IN
     }
     class Token
     {
-        public TokenType get_type(string s)
+        public static TokenType getType(string s)
         {
             s = s.ToLower();
             if (s == "and") return TokenType.AND;
             if (s == "or") return TokenType.OR;
             if (s == "not") return TokenType.NOT;
+            if (s == "in") return TokenType.IN;
             else if (s[0] >= 'a' && s[0] <= 'z')
             {
                 for (int i = 0; i < s.Count(); i++)

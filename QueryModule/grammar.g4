@@ -48,3 +48,12 @@ logic_expr
 expression
 	:	logic_expr
 	;
+
+where_expression
+	:	expression (NOT)? IN list
+	|	expression
+	;
+
+list
+	: L_PARA expression ( COMMA expression )* R_PARA
+	;

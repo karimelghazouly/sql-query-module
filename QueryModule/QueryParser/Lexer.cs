@@ -28,7 +28,7 @@ namespace QueryModule.QueryParser
                 Console.WriteLine("awl btngan");
                 return null;
             }
-            Token n = new Token("select", 0);
+            Token n = new Token(0, "select");
             ret.Add(n);
             string temp = "";
             for (int i = 6; i < query.Length; i++)
@@ -36,27 +36,27 @@ namespace QueryModule.QueryParser
                 if (i + 3 < query.Length && query.Substring(i, 4).ToLower() == "from")
                 {
                     idx = i + 4;
-                    ret.Add(new Token("from", TokenType.FROM));
+                    ret.Add(new Token(TokenType.FROM, "from"));
                     break;
                 }
                 if (query[i] == ' ' || query[i] == ',' || isoperator(query[i]) || query[i] == '(' || query[i] == ')')
                 {
                     if (temp.Count() != 0)
                     {
-                        TokenType t = new Token().get_type(temp);
+                        TokenType t = Token.getType(temp);
                         if (t == TokenType.EXCEPT)
                         {
                             //raise btnagan
                             Console.WriteLine("tny btngan");
                             return null;
                         }
-                        ret.Add(new Token(temp, t));
+                        ret.Add(new Token(t, temp));
                     }
 
                     if (query[i] == '(')
-                        ret.Add(new Token("(", TokenType.L_PARA));
+                        ret.Add(new Token(TokenType.L_PARA, "("));
                     else if (query[i] == ')')
-                        ret.Add(new Token(")", TokenType.R_PARA));
+                        ret.Add(new Token(TokenType.R_PARA, ")"));
 
                     else if (isoperator(query[i]))
                     {
@@ -66,10 +66,10 @@ namespace QueryModule.QueryParser
                             o += query[i + 1];
                             i++;
                         }
-                        ret.Add(new Token(o, TokenType.OP));
+                        ret.Add(new Token(TokenType.OP, o));
                     }
                     else if (query[i] == ',')
-                        ret.Add(new Token(",", TokenType.COMMA));
+                        ret.Add(new Token(TokenType.COMMA, ","));
                     temp = "";
                 }
                 else temp += query[i];
@@ -87,10 +87,10 @@ namespace QueryModule.QueryParser
                 if (query[i] == ' ')
                 {
                     if (temp == "") continue;
-                    TokenType t = new Token().get_type(temp);
+                    TokenType t = Token.getType(temp);
                     if (t != TokenType.EXCEPT)
                     {
-                        Token neww = new Token(temp, t);
+                        Token neww = new Token(t, temp);
                         ret.Add(neww);
                     }
                     else
@@ -107,7 +107,7 @@ namespace QueryModule.QueryParser
                     if (i + 4 < query.Length && query.Substring(i, 5).ToLower() == "where")
                     {
                         idx2 = i + 5;
-                        ret.Add(new Token("where", TokenType.WHERE));
+                        ret.Add(new Token(TokenType.WHERE, "where"));
                         break;
                     }
                 }
@@ -127,18 +127,18 @@ namespace QueryModule.QueryParser
                             o += query[i + 1];
                             i++;
                         }
-                        ret.Add(new Token(o, TokenType.OP));
+                        ret.Add(new Token(TokenType.OP, o));
                     }
                     else if (query[i] == '(')
-                        ret.Add(new Token("(", TokenType.L_PARA));
+                        ret.Add(new Token(TokenType.L_PARA, "("));
                     else if (query[i] == ')')
-                        ret.Add(new Token(")", TokenType.R_PARA));
+                        ret.Add(new Token(TokenType.R_PARA, ")"));
 
                     if (temp == "") continue;
-                    TokenType t = new Token().get_type(temp);
+                    TokenType t = Token.getType(temp);
                     if (t != TokenType.EXCEPT)
                     {
-                        Token neww = new Token(temp, t);
+                        Token neww = new Token(t, temp);
                         ret.Add(neww);
                     }
                     else

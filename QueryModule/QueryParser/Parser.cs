@@ -8,7 +8,7 @@ namespace QueryModule.QueryParser
 {
     enum NodeType
     {
-        ID, FUNC_CALL, BINARY, NUMBER, SELECT, FROM
+        ID, FUNC_CALL, BINARY, NUMBER, SELECT, FROM, STRING, LIST, NEGATE
     }
     class Node
     {
@@ -111,7 +111,8 @@ namespace QueryModule.QueryParser
 
         public static ParserResult parse(List<Token> tokens)
         {
-            return null;
+            ParserResult ret = new ParserResult(selectStatement(), fromStatement(), whereStatement());
+            return ret;
         }
 
         private static Node selectStatement()
@@ -159,9 +160,58 @@ namespace QueryModule.QueryParser
             assertCurrentToken(TokenType.WHERE);
             Token whereToken = currentToken();
             skipTokens(1);
-            Node retNode = new Node(NodeType.FROM, whereToken, expression());
+            Node retNode = new Node(NodeType.FROM, whereToken, whereExpression());
 
             return retNode;
+        }
+
+        private static Node whereExpression()
+        {
+            Node expr = expression();
+            if (checkSequence(TokenType.IN))
+            {
+                Node inNode = new Node(NodeType.BINARY, currentToken());
+                skipTokens(1);
+                Node notNode = null;
+                if (checkSequence(TokenType.NOT))
+                {
+                    notNode = new Node(NodeType.NEGATE, currentToken());
+                    skipTokens(1);
+                }
+                Node li = list();
+                inNode.Children.Add(expr);
+                inNode.Children.Add(li);
+                if (notNode == null)
+                {
+                    return inNode;
+                }
+                return notNode;
+            }
+            return expr;
+        }
+
+        private static Node list()
+        {
+            assertCurrentToken(TokenType.L_PARA);
+            Node ret = new Node(NodeType.LIST, currentToken());
+            skipTokens(1);
+            ret.Children.Add(expression());
+            if(ret.Children[0] == null)
+            {
+                throw new ParserException("Expected expression after L_PARA in IN expression");
+            }
+            while(checkSequence(TokenType.COMMA))
+            {
+                skipTokens(1);
+                ret.Children.Add(expression());
+                if (ret.Children.Last() == null)
+                {
+                    throw new ParserException("Expected expression after COMMA in IN expression");
+                }
+            }
+            assertCurrentToken(TokenType.R_PARA);
+            skipTokens(1);
+            return ret;
         }
 
         private static Node id()
@@ -239,9 +289,15 @@ namespace QueryModule.QueryParser
 
         private static Node factor()
         {
-            if(currentToken().tokenType == TokenType.NUM)
+            if (currentToken().tokenType == TokenType.NUM)
             {
                 Node ret = new Node(NodeType.NUMBER, currentToken());
+                skipTokens(1);
+                return ret;
+            }
+            if (currentToken().tokenType == TokenType.STRING)
+            {
+                Node ret = new Node(NodeType.STRING, currentToken());
                 skipTokens(1);
                 return ret;
             }
