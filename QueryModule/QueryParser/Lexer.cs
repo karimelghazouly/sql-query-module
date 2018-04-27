@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace QueryModule.QueryParser
 {
+    class LexerException : Exception
+    {
+        public LexerException(string message) : base(message) { }
+    }
     class lexer
     {
         public lexer()
@@ -15,6 +19,24 @@ namespace QueryModule.QueryParser
             return (x == '+' || x == '-' || x == '*' || x == '/' || x == '>' || x == '<' || x == '=' || x == '!'
                 || x == '%');
         }
+
+        private static Token getLastToken(string temp)
+        {
+            if (temp.Length > 0)
+            {
+                TokenType tt = Token.getType(temp);
+                if (tt != TokenType.EXCEPT)
+                {
+                    Token neww = new Token(tt, temp);
+                    return neww;
+                }
+                else
+                {
+                    throw new LexerException("Unexpected token " + temp);
+                }
+            }
+            return null;
+        }
         public static List<Token> Lex(string query)
         {
             query = query.Trim();
@@ -22,11 +44,9 @@ namespace QueryModule.QueryParser
             List<Token> ret = new List<Token>();
             string select_check = query.Substring(0, 6);
             select_check = select_check.ToLower();
-            if (select_check != "select")
+            if (select_check.ToLower() != "select")
             {
-                // raise exepction
-                Console.WriteLine("awl btngan");
-                return null;
+                throw new LexerException("Expected SELECT");
             }
             Token n = new Token(0, "select");
             ret.Add(n);
@@ -46,9 +66,7 @@ namespace QueryModule.QueryParser
                         TokenType t = Token.getType(temp);
                         if (t == TokenType.EXCEPT)
                         {
-                            //raise btnagan
-                            Console.WriteLine("tny btngan");
-                            return null;
+                            throw new LexerException("Unexpected token " + temp);
                         }
                         ret.Add(new Token(t, temp));
                     }
@@ -78,9 +96,7 @@ namespace QueryModule.QueryParser
             int idx2 = -1;
             if (idx == -1)
             {
-                //raise excpetion
-                Console.WriteLine("hamada idx = -1");
-                return null;
+                throw new LexerException("Unexpected token");
             }
             for (int i = idx; i < query.Count(); i++)
             {
@@ -95,9 +111,7 @@ namespace QueryModule.QueryParser
                     }
                     else
                     {
-                        //raise exception
-                        Console.WriteLine("henanasdasd;");
-                        return null;
+                        throw new LexerException("Unexpected token " + temp);
                     }
                     temp = "";
                 }
@@ -131,61 +145,22 @@ namespace QueryModule.QueryParser
                     }
                     else if (query[i] == '(')
                     {
-                        if (temp.Length > 0)
-                        {
-                            TokenType tt = Token.getType(temp);
-                            if (tt != TokenType.EXCEPT)
-                            {
-                                Token neww = new Token(tt, temp);
-                                ret.Add(neww);
-                            }
-                            else
-                            {
-                                //raise exception
-                                Console.WriteLine("btngahagagaga");
-                                return null;
-                            }
-                        }
+                        Token toInsert = getLastToken(temp);
+                        if (toInsert != null) ret.Add(toInsert);
                         temp = "";
                         ret.Add(new Token(TokenType.L_PARA, "("));
                     }
                     else if (query[i] == ',')
                     {
-                        if (temp.Length > 0)
-                        {
-                            TokenType tt = Token.getType(temp);
-                            if (tt != TokenType.EXCEPT)
-                            {
-                                Token neww = new Token(tt, temp);
-                                ret.Add(neww);
-                            }
-                            else
-                            {
-                                //raise exception
-                                Console.WriteLine("btngahagagaga");
-                                return null;
-                            }
-                        }
+                        Token toInsert = getLastToken(temp);
+                        if (toInsert != null) ret.Add(toInsert);
                         temp = "";
                         ret.Add(new Token(TokenType.COMMA, ","));
                     }
                     else if (query[i] == ')')
                     {
-                        if (temp.Length > 0)
-                        {
-                            TokenType tt = Token.getType(temp);
-                            if (tt != TokenType.EXCEPT)
-                            {
-                                Token neww = new Token(tt, temp);
-                                ret.Add(neww);
-                            }
-                            else
-                            {
-                                //raise exception
-                                Console.WriteLine("btngahagagaga");
-                                return null;
-                            }
-                        }
+                        Token toInsert = getLastToken(temp);
+                        if (toInsert != null) ret.Add(toInsert);
                         temp = "";
                         ret.Add(new Token(TokenType.R_PARA, ")"));
                     }
@@ -199,9 +174,7 @@ namespace QueryModule.QueryParser
                     }
                     else
                     {
-                        //raise exception
-                        Console.WriteLine("btngahagagaga");
-                        return null;
+                        throw new LexerException("Unexpected token " + temp);
                     }
                     temp = "";
                 }
