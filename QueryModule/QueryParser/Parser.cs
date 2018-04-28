@@ -350,7 +350,7 @@ namespace QueryModule.QueryParser
                 Token negativeToken = currentToken();
                 skipTokens(1);
                 Node factorNode = factor();
-                Node retNode = new Node(NodeType.BINARY, negativeToken, new Node(NodeType.NUMBER, new Token(TokenType.OP, "-")));
+                Node retNode = new Node(NodeType.BINARY, negativeToken, new Node(NodeType.NUMBER, new Token(TokenType.NUM, "0")));
                 retNode.Children.Add(factorNode);
                 return retNode;
             }

@@ -149,6 +149,9 @@ namespace QueryModule.QueryParser
                 {
                     if (isoperator(query[i]))
                     {
+                        Token toInsert = getLastToken(temp);
+                        if (toInsert != null) ret.Add(toInsert);
+                        temp = "";
                         string o = query[i].ToString();
                         if (i + 1 < query.Length && isoperator(query[i + 1]))
                         {
