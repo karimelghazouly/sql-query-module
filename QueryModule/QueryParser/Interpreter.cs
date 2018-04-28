@@ -239,47 +239,52 @@ namespace QueryModule.QueryParser
         }
         Entity execute(Node cur, List<Entity> r, Dictionary<string, Entity> map)
         {
+            Entity ret;
             if (cur.originalToken.lexeme == "-")
-                return executeMinus(cur, r, map);
+                ret = executeMinus(cur, r, map);
             else if (cur.originalToken.lexeme == "+")
-                return executePlus(cur, r, map);
+                ret = executePlus(cur, r, map);
             else if (cur.originalToken.lexeme == "*")
-                return executeMul(cur, r, map);
+                ret = executeMul(cur, r, map);
             else if (cur.originalToken.lexeme == "/")
-                return executeDiv(cur, r, map);
+                ret = executeDiv(cur, r, map);
 
             else if (cur.originalToken.lexeme == "<")
-                return executeLess(cur, r, map);
+                ret = executeLess(cur, r, map);
             else if (cur.originalToken.lexeme == "<=")
-                return executeLessEq(cur, r, map);
+                ret = executeLessEq(cur, r, map);
             else if (cur.originalToken.lexeme == ">")
-                return executeMore(cur, r, map);
+                ret = executeMore(cur, r, map);
             else if (cur.originalToken.lexeme == ">=")
-                return executeMoreEq(cur, r, map);
+                ret = executeMoreEq(cur, r, map);
 
             else if (cur.originalToken.lexeme == "and")
-                return executeAND(cur, r, map);
+                ret = executeAND(cur, r, map);
             else if (cur.originalToken.lexeme == "or")
-                return executeOR(cur, r, map);
+                ret = executeOR(cur, r, map);
 
             else if (cur.originalToken.lexeme == "where")
-                return executeWhere(cur, r, map);
+                ret = executeWhere(cur, r, map);
 
             else if (cur.originalToken.lexeme == "=")
-                return executeEq(cur, r, map);
+                ret = executeEq(cur, r, map);
             else if (cur.originalToken.lexeme == "!=")
-                return executeNotEq(cur, r, map);
+                ret = executeNotEq(cur, r, map);
             else if (cur.originalToken.lexeme == "in")
-                return executeIN(cur, r, map);
+                ret = executeIN(cur, r, map);
             else if (cur.originalToken.lexeme == "not")
-                return executeNot(cur, r, map);
+                ret = executeNot(cur, r, map);
             else if (cur.nodeType == NodeType.NUMBER)
-                return executeNum(cur, r, map);
+                ret = executeNum(cur, r, map);
             else if (cur.nodeType == NodeType.ID)
-                return executeID(cur, r, map);
+                ret = executeID(cur, r, map);
             else if (cur.nodeType == NodeType.STRING)
-                return executeString(cur, r, map);
-            throw new InterpreterException("Unexpected token " + cur.originalToken.lexeme);
+                ret = executeString(cur, r, map);
+            else
+                throw new InterpreterException("Unexpected token " + cur.originalToken.lexeme);
+            if (ret == null)
+                throw new InterpreterException("Invlaid Operands for " + cur.originalToken.lexeme);
+            return ret;
         }
         Dictionary<string, Entity> initMap(List<Entity> r)
         {
@@ -470,29 +475,34 @@ namespace QueryModule.QueryParser
         }
         List<Entity> executeS(Node cur, Dictionary<string, List<Entity> > map)
         {
+            List<Entity> ret;
             if (cur.originalToken.lexeme == "-")
-                return executeMinusS(cur, map);
+                ret = executeMinusS(cur, map);
             else if (cur.originalToken.lexeme == "+")
-                return executePlusS(cur, map);
+                ret = executePlusS(cur, map);
             else if (cur.originalToken.lexeme == "*")
-                return executeMulS(cur, map);
+                ret = executeMulS(cur, map);
             else if (cur.originalToken.lexeme == "/")
-                return executeDivS(cur, map);
+                ret = executeDivS(cur, map);
             else if (cur.originalToken.lexeme == "avg")
-                return avg(cur, map);
+                ret = avg(cur, map);
             else if (cur.originalToken.lexeme == "sum")
-                return sum(cur, map);
+                ret = sum(cur, map);
             else if (cur.originalToken.lexeme == "min")
-                return min(cur, map);
+                ret = min(cur, map);
             else if (cur.originalToken.lexeme == "max")
-                return max(cur, map);
+                ret = max(cur, map);
             else if (cur.nodeType == NodeType.NUMBER)
-                return executeNumS(cur, map);
+                ret = executeNumS(cur, map);
             else if (cur.nodeType == NodeType.ID)
-                return executeIDS(cur, map);
+                ret = executeIDS(cur, map);
             else if (cur.nodeType == NodeType.STRING)
-                return executeStringS(cur, map);
-            throw new InterpreterException("Unknown token " + cur.originalToken.lexeme);
+                ret = executeStringS(cur, map);
+            else
+                throw new InterpreterException("Unknown token " + cur.originalToken.lexeme);
+            if (ret == null)
+                throw new InterpreterException("Invalid Operands for" + cur.originalToken.lexeme);
+            return ret;
         }
         Dictionary<string, List<Entity> > initMapS()
         {
