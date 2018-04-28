@@ -279,7 +279,7 @@ namespace QueryModule.QueryParser
                 return excuteID(cur, r, map);
             else if (cur.nodeType == NodeType.STRING)
                 return excuteString(cur, r, map);
-            return null;
+            throw new InterpreterException("Unexpected token " + cur.originalToken.lexeme);
         }
         Dictionary<string, Entity> initMap(List<Entity> r)
         {
@@ -492,7 +492,7 @@ namespace QueryModule.QueryParser
                 return excuteIDS(cur, map);
             else if (cur.nodeType == NodeType.STRING)
                 return excuteStringS(cur, map);
-            return null;
+            throw new InterpreterException("Unknown token " + cur.originalToken.lexeme);
         }
         Dictionary<string, List<Entity> > initMapS()
         {

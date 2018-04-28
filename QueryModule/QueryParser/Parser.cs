@@ -230,6 +230,7 @@ namespace QueryModule.QueryParser
                 return null;
             }
             Token funcNameToken = currentToken();
+            funcNameToken.lexeme = funcNameToken.lexeme.ToLower();
             skipTokens(2);
             Node expressionNode = expression();
             assertCurrentToken(TokenType.R_PARA);

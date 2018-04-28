@@ -58,6 +58,8 @@ namespace QueryModule
                         name += tokens[i].lexeme + " ";
                     }
                 }
+                dataGridView1.DataSource = null;
+                dataGridView1.Refresh();
                 DataTable table = new DataTable();
                 for (int i = 0; i < cols.Count; i++)
                     table.Columns.Add(cols[i]);

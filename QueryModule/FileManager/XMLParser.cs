@@ -51,6 +51,7 @@ namespace QueryModule.FileManager
         public static void SetDatabasePath(string path)
         {
             DatabasePath = path;
+            DB = null;
         }
 
         private static XMLDatabase GetDatabase()
