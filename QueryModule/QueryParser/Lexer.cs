@@ -99,7 +99,7 @@ namespace QueryModule.QueryParser
             int idx2 = -1;
             if (idx == -1)
             {
-                throw new LexerException("Unexpected token");
+                throw new LexerException("Expected from");
             }
             for (int i = idx; i < query.Count(); i++)
             {
@@ -143,8 +143,6 @@ namespace QueryModule.QueryParser
                 }
             }
             temp = "";
-            // select x , y+3+(5/8) , avg(x+((9*9)*(12/2))) from jaaa where bla = bla and yyy != 'qwe'
-            // el ahna 3mleno fe el loop el tht da ghalat 3shan el case de hy5od heta de kolha id wahd
             for (int i = idx2; i < query.Length && i != -1; i++)
             {
                 if (query[i] == ' ' || isoperator(query[i]) || query[i] == '(' || query[i] == ')' || query[i] == ',')
