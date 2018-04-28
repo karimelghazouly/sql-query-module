@@ -106,7 +106,6 @@ namespace QueryModule.QueryParser
                 throw new ParserException("Error parsing query, expected: " + type.ToString() + ", found: " + currentToken().tokenType.ToString());
             }
         }
-
         private static bool checkSequence(params TokenType[] types)
         {
             if (curToken + types.Length > tokens.Count) 
@@ -261,24 +260,26 @@ namespace QueryModule.QueryParser
         private static Node whereLogicExpression()
         {
             Node expr = expression();
-            if (checkSequence(TokenType.IN))
+            if (checkSequence(TokenType.NOT, TokenType.IN))
             {
+                Node notNode = new Node(NodeType.NEGATE, currentToken());
+                skipTokens(1);
                 Node inNode = new Node(NodeType.BINARY, currentToken());
                 skipTokens(1);
-                Node notNode = null;
-                if (checkSequence(TokenType.NOT))
-                {
-                    notNode = new Node(NodeType.NEGATE, currentToken());
-                    skipTokens(1);
-                }
                 Node li = list();
                 inNode.Children.Add(expr);
                 inNode.Children.Add(li);
-                if (notNode == null)
-                {
-                    return inNode;
-                }
+                notNode.Children.Add(inNode);
                 return notNode;
+            }
+            else if (checkSequence(TokenType.IN))
+            {
+                Node inNode = new Node(NodeType.BINARY, currentToken());
+                skipTokens(1);
+                Node li = list();
+                inNode.Children.Add(expr);
+                inNode.Children.Add(li);
+                return inNode;
             }
             return expr;
         }

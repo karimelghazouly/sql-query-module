@@ -269,10 +269,10 @@ namespace QueryModule.QueryParser
                 return executeEq(cur, r, map);
             else if (cur.originalToken.lexeme == "!=")
                 return executeNotEq(cur, r, map);
-            else if (cur.originalToken.lexeme == "!")
-                return executeNot(cur, r, map);
             else if (cur.originalToken.lexeme == "in")
                 return executeIN(cur, r, map);
+            else if (cur.originalToken.lexeme == "not")
+                return executeNot(cur, r, map);
             else if (cur.nodeType == NodeType.NUMBER)
                 return executeNum(cur, r, map);
             else if (cur.nodeType == NodeType.ID)
