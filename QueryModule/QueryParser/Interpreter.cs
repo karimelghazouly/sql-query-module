@@ -67,8 +67,8 @@ namespace QueryModule.QueryParser
             if (!assertBinaryNode(cur))
                 return null;
             Entity ret = new Entity("", Type.NUM, 0.0);
-            bool x1 = Math.Abs(excute(cur.Children[0], r, map).valueN) < 1e-8;
-            bool x2 = Math.Abs(excute(cur.Children[1], r, map).valueN) < 1e-8;
+            bool x1 = Math.Abs(excute(cur.Children[0], r, map).valueN) >= 1e-8;
+            bool x2 = Math.Abs(excute(cur.Children[1], r, map).valueN) >= 1e-8;
             if (x1 && x2)
                 ret.valueN = 1.0;
             else
@@ -80,8 +80,8 @@ namespace QueryModule.QueryParser
             if (!assertBinaryNode(cur))
                 return null;
             Entity ret = new Entity("", Type.NUM, 0.0);
-            bool x1 = Math.Abs(excute(cur.Children[0], r, map).valueN) < 1e-8;
-            bool x2 = Math.Abs(excute(cur.Children[1], r, map).valueN) < 1e-8;
+            bool x1 = Math.Abs(excute(cur.Children[0], r, map).valueN) >= 1e-8;
+            bool x2 = Math.Abs(excute(cur.Children[1], r, map).valueN) >= 1e-8;
             if (x1 || x2)
                 ret.valueN = 1.0;
             else
