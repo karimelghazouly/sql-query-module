@@ -67,8 +67,12 @@ namespace QueryModule.QueryParser
             if (!assertBinaryNode(cur))
                 return null;
             Entity ret = new Entity("", Type.NUM, 0.0);
-            ret.valueN = (int)(excute(cur.Children[0], r, map).valueN) & (int)(excute(cur.Children[1], r, map).valueN);
-            if (ret.valueN != 0.0) ret.valueN = 1;
+            bool x1 = Math.Abs(excute(cur.Children[0], r, map).valueN) < 1e-8;
+            bool x2 = Math.Abs(excute(cur.Children[1], r, map).valueN) < 1e-8;
+            if (x1 && x2)
+                ret.valueN = 1.0;
+            else
+                ret.valueN = 0.0;           
             return ret;
         }
         Entity excuteOR(Node cur, List<Entity> r, Dictionary<string, Entity> map)
@@ -76,8 +80,12 @@ namespace QueryModule.QueryParser
             if (!assertBinaryNode(cur))
                 return null;
             Entity ret = new Entity("", Type.NUM, 0.0);
-            ret.valueN = (int)(excute(cur.Children[0], r, map).valueN) | (int)(excute(cur.Children[1], r, map).valueN);
-            if (ret.valueN != 0.0) ret.valueN = 1;
+            bool x1 = Math.Abs(excute(cur.Children[0], r, map).valueN) < 1e-8;
+            bool x2 = Math.Abs(excute(cur.Children[1], r, map).valueN) < 1e-8;
+            if (x1 || x2)
+                ret.valueN = 1.0;
+            else
+                ret.valueN = 0.0;
             return ret;
         }
         Entity excutePlus(Node cur, List<Entity> r, Dictionary<string, Entity> map)
@@ -200,8 +208,7 @@ namespace QueryModule.QueryParser
         }
         Entity excuteList(Node cur, List<Entity> r, Dictionary<string, Entity> map, Entity v)
         {
-            Entity ret = new Entity("", Type.NUM, 0.0);
-            bool INT = true, STR = true;
+            Entity ret = new Entity("", Type.NUM, 0.0);            
             foreach(Node child in cur.Children)
             {
                 Entity x = excute(child, r, map);
